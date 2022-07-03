@@ -22,7 +22,8 @@ helm install mongo bitnami/mongodb --namespace tyk
 
 # 安装 Tyk Gateway + Pump
 
-`tyk-helm/tyk-headless` 中包含了 Tyk Gateway 和 Tyk Pump 两个组件
+- `tyk-helm/tyk-headless` 中包含了 Tyk Gateway 和 Tyk Pump 两个组件
+- `tyk-pump` 可能会不支持 Mongo 5.x,  需要使用 4.x 或者使用其他的后端数据引擎
 
 ```
 helm repo add tyk-helm https://helm.tyk.io/public/helm/charts/
@@ -33,10 +34,10 @@ export REDIS_PASSWORD=$(kubectl get secret -n tyk redis -o jsonpath="{.data.redi
 
 helm install tyk ./tyk-headless -n tyk \
     --set secrets.APISecret=management-api-secret \
-    --set "redis.addrs[0]=redis-master.tyk.svc.cluster.local:6379" \
-    --set redis.pass=$REDIS_PASSWORD \
-    --set redis.enableCluster=false \
-    --set redis.enableSentinel=false \
+    --set "redis.standalone.enabled=true" \
+    --set "redis.standalone.host=redis-master.tyk.svc.cluster.local" \
+    --set redis.standalone.port=6379 \
+    --set redis.password=$REDIS_PASSWORD \
     --set mongo.enabled=true \
     --set "mongo.mongoURL=mongodb://root:$MONGODB_ROOT_PASSWORD@mongo-mongodb.tyk.svc.cluster.local:27017/tyk_analytics?authSource=admin" \
     --set "pump.enabled=true"

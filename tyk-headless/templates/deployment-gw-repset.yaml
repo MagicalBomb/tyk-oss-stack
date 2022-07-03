@@ -82,34 +82,6 @@ spec:
           # Lagacy support for Redis Cluster driver. Driver dropped in v3.0.0.
           - name: REDIGOCLUSTER_SHARDCOUNT
             value: "128"
-          - name: TYK_GW_STORAGE_ADDRS
-            value: {{ include "tyk-headless.redis_url" . | quote }}
-          {{ if .Values.redis.enableSentinel }}
-          - name: TYK_GW_STORAGE_SENTINELPASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end }}
-                key: redisSentinelPass
-          - name: TYK_GW_STORAGE_MASTERNAME
-            value: "{{- .Values.redis.masterName -}}"
-         {{ else if .Values.redis.enableCluster }}
-          - name: TYK_GW_STORAGE_ENABLECLUSTER
-            value: "true"
-         {{ else }}
-          - name: TYK_GW_STORAGE_MASTERNAME
-            value: ""
-          - name: TYK_GW_STORAGE_ENABLECLUSTER
-            value: "false"
-         {{ end }}
-          - name: TYK_GW_STORAGE_DATABASE
-            value: "{{ default "0" .Values.redis.storage.database }}"
-          - name: TYK_GW_STORAGE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end}}
-                key: redisPass
-          - name: TYK_GW_STORAGE_USESSL
-            value: "{{ default "false" .Values.redis.useSSL }}"
           - name: TYK_GW_SECRET
             valueFrom:
               secretKeyRef:
@@ -120,12 +92,46 @@ spec:
               secretKeyRef:
                 name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end}}
                 key: APISecret
+
+
+          {{ if .Values.redis.standalone.enabled }}
+          - name: TYK_GW_STORAGE_HOST
+            value: {{ .Values.redis.standalone.host }}
+          - name: TYK_GW_STORAGE_PORT
+            value: "{{int $.Values.redis.standalone.port }}"
+          {{ else if .Values.redis.cluster.enabled }}
+          - name: TYK_GW_STORAGE_ADDRS
+            value: {{ include "tyk-headless.redis_url" . | quote }}
+          - name: TYK_GW_STORAGE_ENABLECLUSTER
+            value: "true"
+          {{ else if .Values.redis.sentinel.enabled }}
+          - name: TYK_GW_STORAGE_SENTINELPASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end }}
+                key: redisPass
+          - name: TYK_GW_STORAGE_MASTERNAME
+            value: "{{- .Values.redis.sentinel.masterName -}}"
+          {{ end }}
+
+
+          - name: TYK_GW_STORAGE_DATABASE
+            value: "{{ default "0" .Values.redis.storage.database }}"
+          - name: TYK_GW_STORAGE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end}}
+                key: redisPass
+          - name: TYK_GW_STORAGE_USESSL
+            value: "{{ default "false" .Values.redis.useSSL }}"
+
+
           - name: TYK_GW_HTTPSERVEROPTIONS_USESSL
             value: "{{ .Values.gateway.tls }}"
-            {{- if .Values.pump.enabled }}
+          {{- if .Values.pump.enabled }}
           - name: TYK_GW_ENABLEANALYTICS
             value: "true"
-            {{- end }}
+          {{- end }}
         {{- if .Values.gateway.extraEnvs }}
         {{- range $env := .Values.gateway.extraEnvs }}
           - name: {{ $env.name }}

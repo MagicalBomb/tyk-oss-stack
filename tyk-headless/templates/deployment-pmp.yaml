@@ -65,20 +65,20 @@ spec:
             value:  "{{ default "false" .Values.mongo.useSSL }}"
           {{- end }}
           - name: TYK_PMP_ANALYTICSSTORAGECONFIG_ADDRS
-            {{- if and .Values.redis.host .Values.redis.port }}
-            value: "{{ .Values.redis.host }}:{{ .Values.redis.port }}"
+            {{- if .Values.redis.standalone.enabled }}
+            value: "{{ .Values.redis.standalone.host }}:{{ .Values.redis.standalone.port }}"
             {{- else }}
-            value: "{{ join "," .Values.redis.addrs }}"
+            value: "{{ join "," .Values.redis.cluster.addrs }}"
             {{- end }}
-          {{ if .Values.redis.enableSentinel }}
+          {{ if .Values.redis.sentinel.enabled }}
           - name: TYK_PMP_ANALYTICSSTORAGECONFIG_SENTINELPASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ if .Values.secrets.useSecretName }} {{ .Values.secrets.useSecretName }} {{ else }} secrets-{{ include "tyk-headless.fullname" . }} {{ end }}
-                key: redisSentinelPass
+                key: redisPass
           - name: TYK_PMP_ANALYTICSSTORAGECONFIG_MASTERNAME
-            value: "{{- .Values.redis.masterName -}}"
-          {{ else if .Values.redis.enableCluster }}
+            value: "{{- .Values.redis.sentinel.masterName -}}"
+          {{ else if .Values.redis.cluster.enabled }}
           - name: TYK_PMP_ANALYTICSSTORAGECONFIG_ENABLECLUSTER
             value: "true"
           {{ else }}
