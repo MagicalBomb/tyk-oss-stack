@@ -24,6 +24,26 @@ secrets:
   useSecretName: ""
 
 redis:
+  # 必须从 standalone, cluster, sentinel 三种模式中选择一个
+  # 当有有个模式的 enabled=true 时, 按 standalone > cluster > sentinel 的优先级生效  
+  standalone:
+    enabled: false
+    host: localhost
+    port: 6379
+
+  cluster:
+    enabled: false
+    # Examples:
+    # addrs: ['server_1:6379', "server_2:6379", ...]
+    addrs: []
+
+  sentinel:
+    enabled: false
+    masterName: ""
+
+  # Redis password
+  password: ""
+
   # The addrs value will allow you to set your Redis addresses. If you are
   # using a redis cluster, you can list the endpoints of the redis instances
   # or use the cluster configuration endpoint.
