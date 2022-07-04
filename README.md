@@ -1,5 +1,5 @@
 # 介绍
-本仓库是关于如何在 K8s 上安装 Tyk 的指南
+本仓库是关于如何在 K8s 上安装 Tyk Quick Start. 可根据需求自行修改.
 
 
 # 创建命名空间
@@ -10,8 +10,7 @@ kubectl create ns tyk
 # 安装 Redis
 ```
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install redis bitnami/redis --namespace tyk \
-    --set architecture=standalone
+helm install redis bitnami/redis-cluster --namespace tyk
 ```
 
 # 安装 Mongodb
@@ -34,9 +33,8 @@ export REDIS_PASSWORD=$(kubectl get secret -n tyk redis -o jsonpath="{.data.redi
 
 helm install tyk ./tyk-headless -n tyk \
     --set secrets.APISecret=management-api-secret \
-    --set "redis.standalone.enabled=true" \
-    --set "redis.standalone.host=redis-master.tyk.svc.cluster.local" \
-    --set redis.standalone.port=6379 \
+    --set "redis.cluster.enabled=true" \
+    --set "redis.cluster.addrs[0]=redis-cluster.tyk.svc.cluster.local:6379" \
     --set redis.password=$REDIS_PASSWORD \
     --set mongo.enabled=true \
     --set "mongo.mongoURL=mongodb://root:$MONGODB_ROOT_PASSWORD@mongo-mongodb.tyk.svc.cluster.local:27017/tyk_analytics?authSource=admin" \

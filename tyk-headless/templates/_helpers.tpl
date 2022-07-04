@@ -37,8 +37,8 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{- define "tyk-headless.redis_url" -}}
-{{- if .Values.redis.addrs -}}
-{{ join "," .Values.redis.addrs }}
+{{- if .Values.redis.cluster.addrs -}}
+{{ join "," .Values.redis.cluster.addrs }}
 {{- /* Adds support for older charts with the host and port options */}}
 {{- else if and .Values.redis.host .Values.redis.port -}}
 {{ .Values.redis.host }}:{{ .Values.redis.port }}
